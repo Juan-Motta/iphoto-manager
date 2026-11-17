@@ -1,6 +1,8 @@
 <div align="center">
 
-# 📱 Photo Manager
+<img src="docs/images/icon.png" alt="Photo Manager icon" width="128">
+
+# Photo Manager
 
 **Free up space on your iPhone from your Mac — without losing a single photo.**
 
@@ -71,9 +73,12 @@ Photo Manager is careful by design:
 
 ## Install
 
-1. Download **PhotoManager.dmg**.
-2. Open it and drag **Photo Manager** into **Applications**.
-3. Open Photo Manager. If macOS says it can't check the app, go to **System Settings › Privacy & Security** and click **Open Anyway**.
+1. Download **PhotoManager.dmg** and open it.
+2. Drag **Photo Manager** onto the **Applications** folder.
+
+   <img src="docs/images/installer.png" alt="Installer window: drag Photo Manager to Applications" width="520">
+
+3. Open Photo Manager from your **Applications** folder. If macOS says it can't check the app, go to **System Settings › Privacy & Security** and click **Open Anyway**.
 
 **Requires macOS 26 (Tahoe) or later** and an iPhone with its USB cable.
 
@@ -103,12 +108,13 @@ Photo Manager is careful by design:
 swift run --package-path App PhotoManager    # build and launch the app
 ./scripts/build-app.sh                       # build build/Photo Manager.app
 ./scripts/build-dmg.sh                       # build dist/PhotoManager-<version>.dmg
+./scripts/make-icon.sh                       # regenerate the app icon
 ./scripts/screenshots.sh                     # regenerate the README screenshots
 ```
 
 ### Build the DMG
 
-`build-dmg.sh` builds a release app bundle and packs it into a DMG with an **Applications** shortcut. It is configured with environment variables:
+`build-dmg.sh` builds a release app bundle and packs it into a DMG whose window shows the app, an arrow and an **Applications** shortcut. Styling the window drives Finder through AppleScript, so the first run may ask to let the terminal control Finder. It is configured with environment variables:
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -117,6 +123,7 @@ swift run --package-path App PhotoManager    # build and launch the app
 | `BUNDLE_ID` | `com.photomanager.app` | Bundle identifier. |
 | `SIGN_IDENTITY` | `-` (ad-hoc) | A `Developer ID Application` identity to sign for distribution. |
 | `NOTARY_PROFILE` | none | Keychain profile from `xcrun notarytool store-credentials`. When set, the DMG is notarized and stapled. |
+| `PLAIN_DMG` | `0` | `1` skips the Finder styling, for machines without a desktop session (CI). |
 
 ```bash
 # Signed and notarized for distribution
@@ -125,7 +132,11 @@ NOTARY_PROFILE=photo-manager \
 VERSION=1.1.0 ./scripts/build-dmg.sh
 ```
 
-Add `App/Resources/AppIcon.icns` to give the app an icon. The bundle is built for the Mac's own architecture.
+The bundle is built for the Mac's own architecture.
+
+### Icon and installer artwork
+
+The app icon and the installer background are drawn in code by `scripts/artwork.swift`. `make-icon.sh` turns the icon into `App/Resources/AppIcon.icns` (and `docs/images/icon.png`); `build-dmg.sh` renders the background on every build.
 
 ### Screenshots
 
