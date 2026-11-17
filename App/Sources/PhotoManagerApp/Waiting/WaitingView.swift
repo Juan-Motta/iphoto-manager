@@ -33,6 +33,7 @@ struct WaitingView: View {
                     StepCard(number: 2, title: "Unlock your iPhone", detail: "Photos are only readable while it is unlocked.", isDone: device != nil && device?.access != .locked)
                     StepCard(number: 3, title: "Tap “Trust”", detail: "Allow this computer when your iPhone asks.", isDone: device?.access == .ready)
                 }
+                .fixedSize(horizontal: false, vertical: true)
             }
 
             Label(status, systemImage: "")
@@ -89,7 +90,9 @@ private struct StepCard: View {
             Text(title).font(.headline)
             Text(detail).font(.callout).foregroundStyle(.secondary)
         }
+        // Same height for every card, content pinned to the top.
         .frame(width: 200, alignment: .leading)
+        .frame(maxHeight: .infinity, alignment: .top)
         .padding(16)
         .glassEffect(.regular, in: .rect(cornerRadius: 20))
         .accessibilityElement(children: .combine)

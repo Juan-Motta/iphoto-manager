@@ -94,7 +94,20 @@ struct ProgressSheet: View {
         if state.progress.currentFileName == item.fileName {
             return (state.progress.phase == .copying ? "Copying to Mac…" : "Deleting…", .accentColor)
         }
+        if isDeletingBatch { return ("Deleting from iPhone…", .accentColor) }
+        if isCopied(item) { return ("Copied", .secondary) }
         return ("Waiting", .secondary)
+    }
+
+    /// Items are copied in order, so everything before `completed` is already done;
+    /// the real outcome appears when the report arrives.
+    private func isCopied(_ item: MediaItem) -> Bool {
+        state.progress.phase == .copying && (state.items.firstIndex(of: item) ?? .max) < state.progress.completed
+    }
+
+    /// Save & Delete deletes all verified copies in one request after copying.
+    private var isDeletingBatch: Bool {
+        state.report == nil && state.progress.phase == .deleting && state.progress.currentFileName == nil
     }
 
     @ViewBuilder private func statusIcon(for item: MediaItem) -> some View {
@@ -106,8 +119,10 @@ struct ProgressSheet: View {
             } else {
                 Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
             }
-        } else if state.progress.currentFileName == item.fileName {
+        } else if state.progress.currentFileName == item.fileName || isDeletingBatch {
             ProgressView().controlSize(.small)
+        } else if isCopied(item) {
+            Image(systemName: "checkmark.circle").foregroundStyle(.secondary)
         } else {
             Image(systemName: "circle").foregroundStyle(.tertiary)
         }
