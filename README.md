@@ -99,22 +99,23 @@ iPhoto Manager is careful by design:
 ### Requirements
 
 - macOS 26 or later.
-- **Xcode 26 or later** to build the app. SwiftUI's `@State` is a compiler macro whose plugin ships only with Xcode. The core and the adapters build and test with the Command Line Tools alone.
+- **Xcode 26 or later** to build the app. Open `iPhotoManager.xcodeproj` and run the **iPhotoManager** scheme. The core and the adapters build and test with the Command Line Tools alone.
 
 ### Commands
 
 ```bash
 ./scripts/test.sh                            # run the test suite
-swift run --package-path App PhotoManager    # build and launch the app
-./scripts/build-app.sh                       # build build/iPhoto Manager.app
+swift run --package-path App PhotoManager    # quick debug run, without the sandbox
+./scripts/build-app.sh                       # build build/iPhoto Manager.app (sandboxed, universal)
 ./scripts/build-dmg.sh                       # build dist/iPhotoManager-<version>.dmg
+TEAM_ID=… ./scripts/archive-appstore.sh      # archive for the Mac App Store
 ./scripts/make-icon.sh                       # regenerate the app icon
 ./scripts/screenshots.sh                     # regenerate the README screenshots
 ```
 
 ### Build the DMG
 
-`build-dmg.sh` builds a release app bundle and packs it into a DMG whose window shows the app, an arrow and an **Applications** shortcut. Styling the window drives Finder through AppleScript, so the first run may ask to let the terminal control Finder. It is configured with environment variables:
+`build-dmg.sh` builds the release app with `xcodebuild` and packs it into a DMG whose window shows the app, an arrow and an **Applications** shortcut. Styling the window drives Finder through AppleScript, so the first run may ask to let the terminal control Finder. It is configured with environment variables:
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -132,23 +133,48 @@ NOTARY_PROFILE=photo-manager \
 VERSION=1.1.0 ./scripts/build-dmg.sh
 ```
 
-The bundle is built for the Mac's own architecture.
+The app is a universal binary (Apple silicon and Intel) and runs in the App Sandbox, like the App Store build.
+
+### Publish on the Mac App Store
+
+The App Store build comes from the same Xcode project. You need an Apple Developer account signed in to Xcode (**Settings › Accounts**) and the app created in App Store Connect with the bundle ID `com.iphotomanager.app`.
+
+```bash
+TEAM_ID=ABCDE12345 ./scripts/archive-appstore.sh            # export build/AppStore/
+TEAM_ID=ABCDE12345 UPLOAD=1 ./scripts/archive-appstore.sh   # upload to App Store Connect
+```
+
+Or in Xcode: **Product › Archive**, then **Distribute App**. Signing and provisioning profiles are automatic.
+
+What the project already covers for review:
+
+| Requirement | Where |
+|---|---|
+| App Sandbox (guideline 2.4.5) | `App/iPhotoManager.entitlements`: USB for the iPhone, the Pictures folder, folders the user picks. |
+| Built and packaged with Xcode | `iPhotoManager.xcodeproj` and `archive-appstore.sh`. |
+| App icon in an asset catalog | `App/Xcode/Assets.xcassets`. |
+| Privacy manifest | `App/Xcode/PrivacyInfo.xcprivacy`: no tracking, no data collected. |
+| No hidden features | Demo mode is compiled only in debug builds. |
+
+App Store Connect also asks for a privacy policy URL, and the reviewer needs an iPhone to test: explain that in the review notes.
 
 ### Icon and installer artwork
 
-The icon artwork is `App/Resources/AppIcon-source.png`. `make-icon.sh` cuts its tile onto the macOS icon grid and builds `App/Resources/AppIcon.icns` (and `docs/images/icon.png`). The installer background is drawn in code by `scripts/artwork.swift` on every DMG build.
+The icon artwork is `App/Resources/AppIcon-source.png`. `make-icon.sh` cuts its tile onto the macOS icon grid and writes every size into `App/Xcode/Assets.xcassets` (and `docs/images/icon.png`). The installer background is drawn in code by `scripts/artwork.swift` on every DMG build.
 
 ### Screenshots
 
-The README images come from the real app running against a fake iPhone with generated pictures, so no personal photos are ever published. `PHOTO_MANAGER_DEMO=<scene>` starts the app in demo mode (`waiting`, `library`, `preview`, `confirm`, `progress`), and `scripts/screenshots.sh` captures each scene into `docs/images/`. The terminal running it needs Screen Recording permission.
+The README images come from the real app running against a fake iPhone with generated pictures, so no personal photos are ever published. In debug builds, `PHOTO_MANAGER_DEMO=<scene>` starts the app in demo mode (`waiting`, `library`, `preview`, `confirm`, `progress`), and `scripts/screenshots.sh` captures each scene into `docs/images/`. The terminal running it needs Screen Recording permission.
 
 ### Architecture
 
 Hexagonal architecture, split into two Swift packages so the domain and adapters build and test without Xcode:
 
 ```
-Package.swift        PhotoManagerCore + PhotoManagerAdapters (+ tests)
-App/Package.swift    PhotoManagerApp (SwiftUI), depends on the root package
+Package.swift            PhotoManagerCore + PhotoManagerAdapters (+ tests)
+App/Package.swift        PhotoManagerApp (SwiftUI) for quick `swift run` debugging
+iPhotoManager.xcodeproj  The shipping app: same App/Sources, plus App/Xcode (assets, privacy
+                         manifest) and App/iPhotoManager.entitlements
 ```
 
 | Target | Role |

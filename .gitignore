@@ -6,3 +6,5 @@ App/.swiftpm/
 .codegraph/
 build/
 dist/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/

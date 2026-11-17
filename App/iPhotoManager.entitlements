@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Required for the Mac App Store. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<!-- The iPhone is reached over USB through ImageCaptureCore. -->
+	<key>com.apple.security.device.usb</key>
+	<true/>
+	<!-- Default save folder: ~/Pictures/iPhone Import. -->
+	<key>com.apple.security.assets.pictures.read-write</key>
+	<true/>
+	<!-- Any other save folder the user picks in the open panel. -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+</dict>
+</plist>
