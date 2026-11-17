@@ -111,6 +111,7 @@ swift run --package-path App PhotoManager    # quick debug run, without the sand
 TEAM_ID=… ./scripts/archive-appstore.sh      # archive for the Mac App Store
 ./scripts/make-icon.sh                       # regenerate the app icon
 ./scripts/screenshots.sh                     # regenerate the README screenshots
+./scripts/store-screenshots.sh               # regenerate the App Store screenshots (2880×1800)
 ```
 
 ### Build the DMG
@@ -156,7 +157,7 @@ What the project already covers for review:
 | Privacy manifest | `App/Xcode/PrivacyInfo.xcprivacy`: no tracking, no data collected. |
 | No hidden features | Demo mode is compiled only in debug builds. |
 
-App Store Connect also asks for a privacy policy URL, and the reviewer needs an iPhone to test: explain that in the review notes.
+The listing texts (description, keywords, review notes) are in `docs/app-store/metadata.md`, the screenshots in `docs/app-store/screenshots/`, and the privacy policy in `docs/privacy-policy.md`.
 
 ### Icon and installer artwork
 

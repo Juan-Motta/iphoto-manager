@@ -6,7 +6,7 @@ import PhotoManagerCore
 
 /// Screens the README shows. Launch with `PHOTO_MANAGER_DEMO=<scene>`; see `scripts/screenshots.sh`.
 enum DemoScene: String, CaseIterable {
-    case waiting, library, preview, confirm, progress
+    case waiting, library, preview, confirm, confirmSave, progress
 
     /// The scene requested by the environment, or nil for the normal app.
     static var current: DemoScene? {
@@ -19,8 +19,9 @@ enum DemoScene: String, CaseIterable {
     @MainActor
     func stage(_ model: AppModel) async {
         // Never write demo files into the user's Pictures folder.
+        // Same folder name as the real default, so screenshots show "iPhone Import".
         model.options.destination = FileManager.default.temporaryDirectory
-            .appending(path: "PhotoManagerDemo", directoryHint: .isDirectory)
+            .appending(path: "PhotoManagerDemo/iPhone Import", directoryHint: .isDirectory)
         try? FileManager.default.createDirectory(at: model.options.destination, withIntermediateDirectories: true)
 
         if self != .waiting {
@@ -39,6 +40,9 @@ enum DemoScene: String, CaseIterable {
         case .confirm:
             model.selection.select(Array(items.prefix(9)))
             model.request(.delete)
+        case .confirmSave:
+            model.selection.select(Array(items.prefix(14)))
+            model.request(.saveAndDelete)
         case .progress:
             model.selection.select(Array(items.prefix(14)))
             Task { await model.perform(.saveAndDelete) }
@@ -46,7 +50,13 @@ enum DemoScene: String, CaseIterable {
 
         if let window = NSApp.windows.first(where: \.isVisible) {
             window.setContentSize(NSSize(width: 1240, height: 780))
-            window.center()
+            // Prefer a Retina screen so captures are 2x (sharp enough for App Store screenshots).
+            if let retina = NSScreen.screens.first(where: { $0.backingScaleFactor > 1 }) {
+                let area = retina.visibleFrame
+                window.setFrameOrigin(NSPoint(x: area.midX - window.frame.width / 2, y: area.midY - window.frame.height / 2))
+            } else {
+                window.center()
+            }
             // Captures of an inactive window show grey controls.
             NSApp.activate(ignoringOtherApps: true)
             window.makeKeyAndOrderFront(nil)
@@ -54,6 +64,11 @@ enum DemoScene: String, CaseIterable {
         // Let thumbnails load and animations settle before the capture.
         try? await Task.sleep(for: .seconds(self == .progress ? 2.6 : 2.0))
         if let window = NSApp.windows.first(where: \.isVisible) {
+            // Focus can be lost while waiting; a capture of an inactive window shows grey controls.
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            window.attachedSheet?.makeKey()
+            try? await Task.sleep(for: .milliseconds(400))
             print("PHOTO_MANAGER_WINDOW=\(window.windowNumber)")
             fflush(stdout)
         }

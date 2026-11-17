@@ -4,13 +4,15 @@
 #
 #   ./scripts/screenshots.sh              # every scene
 #   ./scripts/screenshots.sh library      # only some scenes
+#   OUT_DIR=/tmp/shots MAX_SIZE=0 ./scripts/screenshots.sh   # full Retina size elsewhere
 #
 # The terminal running this needs Screen Recording permission
 # (System Settings → Privacy & Security → Screen Recording).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="$ROOT/docs/images"
+OUT="${OUT_DIR:-$ROOT/docs/images}"
+MAX_SIZE="${MAX_SIZE:-1600}"   # 0 keeps the Retina capture as is
 SCENES=("$@")
 [ ${#SCENES[@]} -eq 0 ] && SCENES=(waiting library preview confirm progress)
 
@@ -20,8 +22,9 @@ mkdir -p "$OUT"
 
 for scene in "${SCENES[@]}"; do
   LOG="$(mktemp)"
-  # -thumbnailSize standard overrides the saved preference for this run only.
-  PHOTO_MANAGER_DEMO="$scene" "$BIN" -thumbnailSize standard >"$LOG" 2>/dev/null &
+  # Arguments override preferences for this run only: default thumbnails, and US English
+  # number and date formats (the App Store listing is English, U.S.).
+  PHOTO_MANAGER_DEMO="$scene" "$BIN" -thumbnailSize standard -AppleLocale en_US -AppleLanguages '(en)' >"$LOG" 2>/dev/null &
   PID=$!
   WINDOW=""
   for _ in $(seq 1 150); do
@@ -39,6 +42,6 @@ for scene in "${SCENES[@]}"; do
   wait "$PID" 2>/dev/null || true
   rm -f "$LOG"
   # Retina captures are twice the size needed on GitHub.
-  sips -Z 1600 "$OUT/$scene.png" >/dev/null
-  echo "✓ docs/images/$scene.png"
+  [ "$MAX_SIZE" != "0" ] && sips -Z "$MAX_SIZE" "$OUT/$scene.png" >/dev/null
+  echo "✓ $OUT/$scene.png"
 done

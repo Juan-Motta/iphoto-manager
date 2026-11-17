@@ -2,6 +2,7 @@
 //
 //   swift scripts/artwork.swift icon <source.png> <out.png>   1024×1024 app icon from the artwork
 //   swift scripts/artwork.swift dmg-background <out.png> <scale>   660×400 pt installer window
+//   swift scripts/artwork.swift store-shot <window.png> <out.png> <title> <subtitle>   2880×1800 App Store screenshot
 //
 // Used by scripts/make-icon.sh and scripts/build-dmg.sh.
 import AppKit
@@ -102,6 +103,42 @@ func drawDMGBackground(_ context: CGContext) {
     subtitle.draw(at: CGPoint(x: (width - subtitle.size().width) / 2, y: 50))
 }
 
+// MARK: App Store screenshot
+
+/// 2880×1800 (a Mac App Store size): a caption over a soft background in the icon's colors,
+/// and the captured app window below it.
+func drawStoreShot(window path: String, title: String, subtitle: String) -> (CGContext) -> Void {
+    let source = NSImage(contentsOfFile: path)!.cgImage(forProposedRect: nil, context: nil, hints: nil)!
+    return { context in
+        let width: CGFloat = 2880, height: CGFloat = 1800
+        linear(context, [color(0xFFF1F3), color(0xFFF6EA), color(0xE8F8FC)], from: CGPoint(x: 0, y: height), to: CGPoint(x: width, y: 0))
+
+        let titleText = NSAttributedString(string: title, attributes: [
+            .font: NSFont.systemFont(ofSize: 92, weight: .bold),
+            .foregroundColor: NSColor(srgbRed: 0.11, green: 0.12, blue: 0.18, alpha: 1),
+        ])
+        let subtitleText = NSAttributedString(string: subtitle, attributes: [
+            .font: NSFont.systemFont(ofSize: 44, weight: .regular),
+            .foregroundColor: NSColor(srgbRed: 0.36, green: 0.38, blue: 0.46, alpha: 1),
+        ])
+        titleText.draw(at: CGPoint(x: (width - titleText.size().width) / 2, y: height - 120 - titleText.size().height))
+        subtitleText.draw(at: CGPoint(x: (width - subtitleText.size().width) / 2, y: height - 250 - subtitleText.size().height))
+
+        // Window: as large as fits under the caption, keeping its aspect ratio.
+        let maxWidth: CGFloat = 2240, maxHeight: CGFloat = 1360
+        let aspect = CGFloat(source.width) / CGFloat(source.height)
+        let size = aspect > maxWidth / maxHeight
+            ? CGSize(width: maxWidth, height: maxWidth / aspect)
+            : CGSize(width: maxHeight * aspect, height: maxHeight)
+        let frame = CGRect(x: (width - size.width) / 2, y: 70, width: size.width, height: size.height)
+        context.saveGState()
+        context.setShadow(offset: CGSize(width: 0, height: -24), blur: 70, color: color(0x1B2340, 0.28))
+        context.interpolationQuality = .high
+        context.draw(source, in: frame)
+        context.restoreGState()
+    }
+}
+
 // MARK: Main
 
 let arguments = CommandLine.arguments
@@ -112,6 +149,8 @@ guard arguments.count >= 3 else {
 switch arguments[1] {
 case "icon" where arguments.count >= 4:
     render(width: 1024, height: 1024, to: arguments[3], draw: drawIcon(from: arguments[2]))
+case "store-shot" where arguments.count >= 6:
+    render(width: 2880, height: 1800, to: arguments[3], draw: drawStoreShot(window: arguments[2], title: arguments[4], subtitle: arguments[5]))
 case "dmg-background":
     let scale = arguments.count > 3 ? CGFloat(Double(arguments[3]) ?? 1) : 1
     render(width: 660, height: 400, scale: scale, to: arguments[2], draw: drawDMGBackground)
