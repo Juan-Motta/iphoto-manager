@@ -4,8 +4,8 @@ import OSLog
 import PhotoManagerCore
 
 /// Connection steps, for diagnosing iPhones that connect but show no items:
-/// `log show --predicate 'subsystem == "com.iphotomanager.app"' --last 10m`
-let deviceLog = Logger(subsystem: "com.iphotomanager.app", category: "device")
+/// `log show --predicate 'subsystem == "com.juanmotta.photomanager"' --last 10m`
+let deviceLog = Logger(subsystem: "com.juanmotta.photomanager", category: "device")
 
 /// One open session with a connected iPhone through `ICCameraDevice`.
 @MainActor

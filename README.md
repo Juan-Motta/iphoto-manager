@@ -121,7 +121,7 @@ TEAM_ID=… ./scripts/archive-appstore.sh      # archive for the Mac App Store
 |---|---|---|
 | `VERSION` | `1.0.0` | Version shown in the app and in the DMG name. |
 | `BUILD_NUMBER` | commit count | `CFBundleVersion`. |
-| `BUNDLE_ID` | `com.iphotomanager.app` | Bundle identifier. |
+| `BUNDLE_ID` | `com.juanmotta.photomanager` | Bundle identifier. |
 | `SIGN_IDENTITY` | `-` (ad-hoc) | A `Developer ID Application` identity to sign for distribution. |
 | `NOTARY_PROFILE` | none | Keychain profile from `xcrun notarytool store-credentials`. When set, the DMG is notarized and stapled. |
 | `PLAIN_DMG` | `0` | `1` skips the Finder styling, for machines without a desktop session (CI). |
@@ -137,7 +137,7 @@ The app is a universal binary (Apple silicon and Intel) and runs in the App Sand
 
 ### Publish on the Mac App Store
 
-The App Store build comes from the same Xcode project. You need an Apple Developer account signed in to Xcode (**Settings › Accounts**) and the app created in App Store Connect with the bundle ID `com.iphotomanager.app`.
+The App Store build comes from the same Xcode project. You need an Apple Developer account signed in to Xcode (**Settings › Accounts**) and the app created in App Store Connect with the bundle ID `com.juanmotta.photomanager`.
 
 ```bash
 TEAM_ID=ABCDE12345 ./scripts/archive-appstore.sh            # export build/AppStore/
