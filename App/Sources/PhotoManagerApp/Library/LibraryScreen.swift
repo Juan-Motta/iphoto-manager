@@ -71,6 +71,7 @@ struct LibraryScreen: View {
                 deviceName: model.device?.name ?? "your iPhone",
                 options: $model.options,
                 thumbnail: model.thumbnail(for:),
+                onChooseFolder: model.useDestination,
                 onCancel: { model.pendingAction = nil },
                 onConfirm: { chosen in Task { await model.perform(chosen) } }
             )
@@ -120,6 +121,6 @@ struct LibraryScreen: View {
     }
 }
 
-extension TransferAction: Identifiable {
+extension TransferAction: @retroactive Identifiable {
     public var id: Self { self }
 }

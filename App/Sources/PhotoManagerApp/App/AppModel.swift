@@ -87,6 +87,7 @@ final class AppModel {
 
     private let monitor: any DeviceMonitor
     private var session: (any DeviceSession)?
+    private var accessedFolder: URL?
     /// Keyed by item and pixel size, so switching sizes keeps both sets cached.
     private var thumbnails: [String: NSImage] = [:]
 
@@ -288,6 +289,14 @@ final class AppModel {
     }
 
     func closeTransfer() { transfer = nil }
+
+    /// In the App Sandbox a folder picked in the open panel is reachable only while its
+    /// security scope is open, so it stays open until another folder is chosen.
+    func useDestination(_ url: URL) {
+        accessedFolder?.stopAccessingSecurityScopedResource()
+        accessedFolder = url.startAccessingSecurityScopedResource() ? url : nil
+        options.destination = url
+    }
 
     func revealDestination() {
         NSWorkspace.shared.activateFileViewerSelecting([options.destination])

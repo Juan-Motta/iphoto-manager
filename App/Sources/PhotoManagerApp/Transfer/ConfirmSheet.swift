@@ -10,6 +10,7 @@ struct ConfirmSheet: View {
     let deviceName: String
     @Binding var options: TransferOptions
     let thumbnail: (MediaItem) async -> NSImage?
+    let onChooseFolder: (URL) -> Void
     let onCancel: () -> Void
     let onConfirm: (TransferAction) -> Void
 
@@ -22,6 +23,7 @@ struct ConfirmSheet: View {
         deviceName: String,
         options: Binding<TransferOptions>,
         thumbnail: @escaping (MediaItem) async -> NSImage?,
+        onChooseFolder: @escaping (URL) -> Void,
         onCancel: @escaping () -> Void,
         onConfirm: @escaping (TransferAction) -> Void
     ) {
@@ -30,6 +32,7 @@ struct ConfirmSheet: View {
         self.deviceName = deviceName
         _options = options
         self.thumbnail = thumbnail
+        self.onChooseFolder = onChooseFolder
         self.onCancel = onCancel
         self.onConfirm = onConfirm
     }
@@ -48,7 +51,7 @@ struct ConfirmSheet: View {
         .frame(width: 460)
         .animation(.smooth(duration: 0.25), value: action)
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
-            if case .success(let url) = result { options.destination = url }
+            if case .success(let url) = result { onChooseFolder(url) }
         }
     }
 
