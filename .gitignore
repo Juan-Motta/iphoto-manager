@@ -4,3 +4,5 @@ App/.build/
 App/.swiftpm/
 .DS_Store
 .codegraph/
+build/
+dist/
