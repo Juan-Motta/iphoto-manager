@@ -1,3 +1,5 @@
+// Debug builds only: the shipped app never contains the fake iPhone.
+#if DEBUG
 import AppKit
 import Foundation
 import PhotoManagerCore
@@ -57,3 +59,4 @@ enum DemoScene: String, CaseIterable {
         }
     }
 }
+#endif

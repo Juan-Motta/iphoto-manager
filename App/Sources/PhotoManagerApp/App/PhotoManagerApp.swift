@@ -1,12 +1,12 @@
 import AppKit
 import PhotoManagerAdapters
+import PhotoManagerCore
 import SwiftUI
 
 @main
 struct PhotoManagerApp: App {
     // Composition root: the real iPhone monitor is wired here and nowhere else.
-    // PHOTO_MANAGER_DEMO swaps in a fake iPhone for README screenshots.
-    @State private var model = AppModel(monitor: DemoScene.current?.monitor ?? ImageCaptureDeviceMonitor())
+    @State private var model = AppModel(monitor: Self.makeMonitor())
 
     init() {
         // Running from `swift run` has no app bundle; make it a regular foreground app.
@@ -19,9 +19,25 @@ struct PhotoManagerApp: App {
             RootView(model: model)
                 .frame(minWidth: 980, minHeight: 640)
                 .task { await model.start() }
-                .task { await DemoScene.current?.stage(model) }
+                .task { await stageDemo() }
         }
         .windowToolbarStyle(.unified)
+    }
+
+    @MainActor
+    private static func makeMonitor() -> any DeviceMonitor {
+        #if DEBUG
+        // PHOTO_MANAGER_DEMO swaps in a fake iPhone for README screenshots.
+        if let scene = DemoScene.current { return scene.monitor }
+        #endif
+        return ImageCaptureDeviceMonitor()
+    }
+
+    @MainActor
+    private func stageDemo() async {
+        #if DEBUG
+        await DemoScene.current?.stage(model)
+        #endif
     }
 }
 

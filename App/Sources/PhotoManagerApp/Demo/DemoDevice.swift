@@ -1,3 +1,5 @@
+// Debug builds only: the shipped app never contains the fake iPhone.
+#if DEBUG
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -223,3 +225,4 @@ private extension String {
         Int64(bitPattern: utf8.reduce(UInt64(1_469_598_103_934_665_603)) { ($0 ^ UInt64($1)) &* 1_099_511_628_211 } >> 1)
     }
 }
+#endif
