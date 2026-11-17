@@ -5,7 +5,8 @@ import SwiftUI
 @main
 struct PhotoManagerApp: App {
     // Composition root: the real iPhone monitor is wired here and nowhere else.
-    @State private var model = AppModel(monitor: ImageCaptureDeviceMonitor())
+    // PHOTO_MANAGER_DEMO swaps in a fake iPhone for README screenshots.
+    @State private var model = AppModel(monitor: DemoScene.current?.monitor ?? ImageCaptureDeviceMonitor())
 
     init() {
         // Running from `swift run` has no app bundle; make it a regular foreground app.
@@ -18,6 +19,7 @@ struct PhotoManagerApp: App {
             RootView(model: model)
                 .frame(minWidth: 980, minHeight: 640)
                 .task { await model.start() }
+                .task { await DemoScene.current?.stage(model) }
         }
         .windowToolbarStyle(.unified)
     }
