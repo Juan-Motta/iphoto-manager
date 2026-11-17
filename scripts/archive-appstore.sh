@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Archives iPhoto Manager for the Mac App Store and exports (or uploads) it.
+# Archives Easy Photo Saver for the Mac App Store and exports (or uploads) it.
 #
 #   TEAM_ID=ABCDE12345 ./scripts/archive-appstore.sh            # export build/AppStore/*.pkg
 #   TEAM_ID=ABCDE12345 UPLOAD=1 ./scripts/archive-appstore.sh   # upload to App Store Connect

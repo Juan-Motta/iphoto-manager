@@ -12,7 +12,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A10000000000000000000F01 /* iPhoto Manager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iPhoto Manager.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000F01 /* Easy Photo Saver.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Easy Photo Saver.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000F02 /* iPhotoManager.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = iPhotoManager.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -45,7 +45,7 @@
 		A10000000000000000000602 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A10000000000000000000F01 /* iPhoto Manager.app */,
+				A10000000000000000000F01 /* Easy Photo Saver.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -85,7 +85,7 @@
 				A10000000000000000000D02 /* PhotoManagerAdapters */,
 			);
 			productName = iPhotoManager;
-			productReference = A10000000000000000000F01 /* iPhoto Manager.app */;
+			productReference = A10000000000000000000F01 /* Easy Photo Saver.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -189,7 +189,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "iPhoto Manager";
+				INFOPLIST_KEY_CFBundleDisplayName = "Easy Photo Saver";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -199,7 +199,7 @@
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.juanmotta.photomanager;
 				PRODUCT_MODULE_NAME = PhotoManagerApp;
-				PRODUCT_NAME = "iPhoto Manager";
+				PRODUCT_NAME = "Easy Photo Saver";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
 			};
@@ -215,7 +215,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "iPhoto Manager";
+				INFOPLIST_KEY_CFBundleDisplayName = "Easy Photo Saver";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -225,7 +225,7 @@
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.juanmotta.photomanager;
 				PRODUCT_MODULE_NAME = PhotoManagerApp;
-				PRODUCT_NAME = "iPhoto Manager";
+				PRODUCT_NAME = "Easy Photo Saver";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
 			};

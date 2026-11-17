@@ -1,14 +1,14 @@
 <div align="center">
 
-<img src="docs/images/icon.png" alt="iPhoto Manager icon" width="128">
+<img src="docs/images/icon.png" alt="Easy Photo Saver icon" width="128">
 
-# iPhoto Manager
+# Easy Photo Saver
 
 **Free up space on your iPhone from your Mac — without losing a single photo.**
 
 Plug in your iPhone, pick what you want, and choose: keep a copy, keep a copy and delete it from the phone, or just delete it.
 
-<img src="docs/images/library.png" alt="iPhoto Manager showing an iPhone's photos and videos grouped by day" width="820">
+<img src="docs/images/library.png" alt="Easy Photo Saver showing an iPhone's photos and videos grouped by day" width="820">
 
 </div>
 
@@ -20,7 +20,7 @@ Plug in your iPhone, pick what you want, and choose: keep a copy, keep a copy an
 
 Plug your iPhone into your Mac with a cable and unlock it. The first time, your iPhone asks whether to **Trust** this computer. Tap **Trust** and enter your passcode.
 
-iPhoto Manager finds the iPhone on its own and walks you through each step.
+Easy Photo Saver finds the iPhone on its own and walks you through each step.
 
 <img src="docs/images/waiting.png" alt="Waiting screen with the three steps: connect the cable, unlock your iPhone, tap Trust" width="720">
 
@@ -47,7 +47,7 @@ Not sure about a photo? Open it full size: hover over it and click the expand bu
 | ✅ | **Save & Delete** | Copies the items to your Mac, checks every copy, then deletes them from the iPhone. **Best for freeing up space.** |
 | 🗑️ | **Delete** | Deletes the items from the iPhone without keeping a copy. |
 
-Before anything is deleted, iPhoto Manager shows you exactly what will go and how much space you'll get back. If you chose **Delete**, you can still switch to **Save & Delete** with one click.
+Before anything is deleted, Easy Photo Saver shows you exactly what will go and how much space you'll get back. If you chose **Delete**, you can still switch to **Save & Delete** with one click.
 
 <img src="docs/images/confirm.png" alt="Confirmation before deleting 9 photos, with the option to save a copy first" width="720">
 
@@ -63,22 +63,22 @@ By default, copies go to **Pictures › iPhone Import**, in one folder per day (
 
 ## Your photos are safe
 
-iPhoto Manager is careful by design:
+Easy Photo Saver is careful by design:
 
 - 🛡️ **Nothing is deleted until its copy is checked.** With **Save & Delete**, each photo is removed from the iPhone only after its copy on your Mac is complete. If a copy fails, the photo stays on your iPhone.
-- 🔍 **No guessing about duplicates.** If a file with the same name is already on your Mac, iPhoto Manager compares the two byte by byte before deciding it's the same photo.
+- 🔍 **No guessing about duplicates.** If a file with the same name is already on your Mac, Easy Photo Saver compares the two byte by byte before deciding it's the same photo.
 - ✋ **You always confirm first.** Deleting asks you every time and shows what will be removed.
 
 ---
 
 ## Install
 
-1. Download **iPhotoManager.dmg** and open it.
-2. Drag **iPhoto Manager** onto the **Applications** folder.
+1. Download **EasyPhotoSaver.dmg** and open it.
+2. Drag **Easy Photo Saver** onto the **Applications** folder.
 
-   <img src="docs/images/installer.png" alt="Installer window: drag iPhoto Manager to Applications" width="520">
+   <img src="docs/images/installer.png" alt="Installer window: drag Easy Photo Saver to Applications" width="520">
 
-3. Open iPhoto Manager from your **Applications** folder. If macOS says it can't check the app, go to **System Settings › Privacy & Security** and click **Open Anyway**.
+3. Open Easy Photo Saver from your **Applications** folder. If macOS says it can't check the app, go to **System Settings › Privacy & Security** and click **Open Anyway**.
 
 **Requires macOS 26 (Tahoe) or later** and an iPhone with its USB cable.
 
@@ -106,8 +106,8 @@ iPhoto Manager is careful by design:
 ```bash
 ./scripts/test.sh                            # run the test suite
 swift run --package-path App PhotoManager    # quick debug run, without the sandbox
-./scripts/build-app.sh                       # build build/iPhoto Manager.app (sandboxed, universal)
-./scripts/build-dmg.sh                       # build dist/iPhotoManager-<version>.dmg
+./scripts/build-app.sh                       # build build/Easy Photo Saver.app (sandboxed, universal)
+./scripts/build-dmg.sh                       # build dist/EasyPhotoSaver-<version>.dmg
 TEAM_ID=… ./scripts/archive-appstore.sh      # archive for the Mac App Store
 ./scripts/make-icon.sh                       # regenerate the app icon
 ./scripts/screenshots.sh                     # regenerate the README screenshots

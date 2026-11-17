@@ -90,7 +90,7 @@ func drawDMGBackground(_ context: CGContext) {
     context.addLine(to: CGPoint(x: 376, y: y - 18))
     context.strokePath()
 
-    let title = NSAttributedString(string: "Drag iPhoto Manager to Applications", attributes: [
+    let title = NSAttributedString(string: "Drag Easy Photo Saver to Applications", attributes: [
         .font: NSFont.systemFont(ofSize: 17, weight: .semibold),
         .foregroundColor: NSColor(srgbRed: 0.16, green: 0.18, blue: 0.27, alpha: 1),
     ])

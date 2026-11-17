@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A10000000000000000000701"
-               BuildableName = "iPhoto Manager.app"
+               BuildableName = "Easy Photo Saver.app"
                BlueprintName = "iPhotoManager"
                ReferencedContainer = "container:iPhotoManager.xcodeproj">
             </BuildableReference>
@@ -43,7 +43,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A10000000000000000000701"
-            BuildableName = "iPhoto Manager.app"
+            BuildableName = "Easy Photo Saver.app"
             BlueprintName = "iPhotoManager"
             ReferencedContainer = "container:iPhotoManager.xcodeproj">
          </BuildableReference>
@@ -60,7 +60,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A10000000000000000000701"
-            BuildableName = "iPhoto Manager.app"
+            BuildableName = "Easy Photo Saver.app"
             BlueprintName = "iPhotoManager"
             ReferencedContainer = "container:iPhotoManager.xcodeproj">
          </BuildableReference>

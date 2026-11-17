@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the app and packs it into dist/iPhotoManager-<version>.dmg: a styled installer window
+# Builds the app and packs it into dist/EasyPhotoSaver-<version>.dmg: a styled installer window
 # with the app, an arrow and an Applications shortcut for drag-to-install.
 #
 #   ./scripts/build-dmg.sh
@@ -14,7 +14,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP_NAME="iPhoto Manager"
+APP_NAME="Easy Photo Saver"
 VOLUME="$APP_NAME"
 VERSION="${VERSION:-1.0.0}"
 export VERSION
@@ -23,7 +23,7 @@ export VERSION
 
 APP="$ROOT/build/$APP_NAME.app"
 DIST="$ROOT/dist"
-DMG="$DIST/iPhotoManager-$VERSION.dmg"
+DMG="$DIST/EasyPhotoSaver-$VERSION.dmg"
 WORK="$(mktemp -d)"
 MOUNT=""
 cleanup() {

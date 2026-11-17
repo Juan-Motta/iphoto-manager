@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds a release "iPhoto Manager.app" in build/ from iPhotoManager.xcodeproj,
+# Builds a release "Easy Photo Saver.app" in build/ from iPhotoManager.xcodeproj,
 # sandboxed, for distribution outside the App Store (see build-dmg.sh).
 #
 #   ./scripts/build-app.sh                 # ad-hoc signed, version 1.0.0
@@ -10,7 +10,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP_NAME="iPhoto Manager"
+APP_NAME="Easy Photo Saver"
 VERSION="${VERSION:-1.0.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)}"
 SIGN_IDENTITY="${SIGN_IDENTITY:--}"   # "-" = ad-hoc signature

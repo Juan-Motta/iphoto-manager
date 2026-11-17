@@ -15,7 +15,7 @@ struct PhotoManagerApp: App {
     }
 
     var body: some Scene {
-        WindowGroup("iPhoto Manager") {
+        WindowGroup("Easy Photo Saver") {
             RootView(model: model)
                 .frame(minWidth: 980, minHeight: 640)
                 .task { await model.start() }
