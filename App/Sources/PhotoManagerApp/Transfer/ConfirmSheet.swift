@@ -110,7 +110,7 @@ struct ConfirmSheet: View {
             Label {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("They won’t be saved to this Mac").font(.callout.weight(.semibold))
-                    Text("Photo Manager can’t restore them afterwards.")
+                    Text("iPhoto Manager can’t restore them afterwards.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }

@@ -9,9 +9,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP_NAME="Photo Manager"
+APP_NAME="iPhoto Manager"
 EXECUTABLE="PhotoManager"
-BUNDLE_ID="${BUNDLE_ID:-com.photomanager.app}"
+BUNDLE_ID="${BUNDLE_ID:-com.iphotomanager.app}"
 VERSION="${VERSION:-1.0.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)}"
 SIGN_IDENTITY="${SIGN_IDENTITY:--}"   # "-" = ad-hoc signature
@@ -45,7 +45,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>LSApplicationCategoryType</key><string>public.app-category.photography</string>
     <key>NSHighResolutionCapable</key><true/>
     <key>NSPrincipalClass</key><string>NSApplication</string>
-    <key>NSCameraUsageDescription</key><string>Photo Manager reads the photos and videos on your connected iPhone.</string>
+    <key>NSCameraUsageDescription</key><string>iPhoto Manager reads the photos and videos on your connected iPhone.</string>
 </dict>
 </plist>
 PLIST
