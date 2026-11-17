@@ -19,9 +19,12 @@ struct LibraryScreen: View {
         } detail: {
             ZStack(alignment: .bottom) {
                 content
+                    // Fill the detail column so the bar sits at the window's bottom, not under a short empty state.
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 SelectionBar(
                     count: model.selection.count,
                     totalBytes: model.selection.totalBytes(in: model.library),
+                    canSelectAll: !model.visibleItems.isEmpty,
                     allSelected: model.allVisibleSelected,
                     onToggleAll: model.toggleAllVisible,
                     onAction: model.request

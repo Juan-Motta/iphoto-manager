@@ -5,6 +5,7 @@ import SwiftUI
 struct SelectionBar: View {
     let count: Int
     let totalBytes: Int64
+    let canSelectAll: Bool
     let allSelected: Bool
     let onToggleAll: () -> Void
     let onAction: (TransferAction) -> Void
@@ -23,6 +24,7 @@ struct SelectionBar: View {
 
                 Button(allSelected ? "Deselect All" : "Select All", action: onToggleAll)
                     .buttonStyle(.glass)
+                    .disabled(!canSelectAll)
 
                 Divider().frame(height: 26)
 
