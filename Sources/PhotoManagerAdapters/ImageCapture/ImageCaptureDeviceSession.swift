@@ -1,6 +1,11 @@
 import Foundation
 import ImageCaptureCore
+import OSLog
 import PhotoManagerCore
+
+/// Connection steps, for diagnosing iPhones that connect but show no items:
+/// `log show --predicate 'subsystem == "com.iphotomanager.app"' --last 10m`
+let deviceLog = Logger(subsystem: "com.iphotomanager.app", category: "device")
 
 /// One open session with a connected iPhone through `ICCameraDevice`.
 @MainActor
@@ -30,6 +35,7 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
             camera.requestOpenSession(options: [:]) { @Sendable error in continuation.resume(returning: error) }
         }
         if error == nil { isOpen = true }
+        deviceLog.notice("open session: \(error.map { String(describing: $0) } ?? "ok", privacy: .public) locked=\(self.camera.isLocked) restricted=\(self.camera.isAccessRestrictedAppleDevice)")
     }
 
     // MARK: DeviceSession
@@ -38,6 +44,8 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
 
     public func loadLibrary() async throws -> [MediaItem] {
         await waitForCatalog()
+        let settled = await CatalogSettling.waitUntilStable { self.camera.mediaFiles?.count ?? 0 }
+        deviceLog.notice("load library: \(settled) files, open=\(self.isOpen)")
         let cameraFiles = (camera.mediaFiles ?? []).compactMap { $0 as? ICCameraFile }
         files = [:]
         let items = cameraFiles.map { file -> MediaItem in
@@ -146,18 +154,25 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
 // blocks, however, run on its own queues: they are marked @Sendable so they are not main-actor isolated.
 extension ImageCaptureDeviceSession: ICCameraDeviceDelegate {
     nonisolated public func deviceDidBecomeReady(withCompleteContentCatalog device: ICCameraDevice) {
-        MainActor.assumeIsolated { markCatalogReady() }
+        MainActor.assumeIsolated {
+            deviceLog.notice("catalog ready: \(self.camera.mediaFiles?.count ?? -1) files, open=\(self.isOpen)")
+            markCatalogReady()
+        }
     }
 
     nonisolated public func cameraDeviceDidRemoveAccessRestriction(_ device: ICDevice) {
         MainActor.assumeIsolated {
+            deviceLog.notice("access restriction removed")
             notifyChange()
             Task { await openWhenAllowed() }
         }
     }
 
     nonisolated public func cameraDeviceDidEnableAccessRestriction(_ device: ICDevice) {
-        MainActor.assumeIsolated { notifyChange() }
+        MainActor.assumeIsolated {
+            deviceLog.notice("access restriction enabled")
+            notifyChange()
+        }
     }
 
     nonisolated public func cameraDeviceDidChangeCapability(_ camera: ICCameraDevice) {

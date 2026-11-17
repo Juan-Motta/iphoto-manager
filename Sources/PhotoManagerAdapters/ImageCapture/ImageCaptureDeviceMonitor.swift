@@ -32,6 +32,7 @@ public final class ImageCaptureDeviceMonitor: NSObject, DeviceMonitor {
             self?.continuation?.yield(.changed(info))
         }
         sessions[session.id] = session
+        deviceLog.notice("device added: locked=\(camera.isLocked) restricted=\(camera.isAccessRestrictedAppleDevice)")
         // Report the device right away: a freshly plugged iPhone is access-restricted until it is
         // unlocked and trusted, and the UI must show that state instead of "Searching…".
         continuation?.yield(.connected(session))
