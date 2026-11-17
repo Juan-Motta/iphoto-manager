@@ -121,17 +121,28 @@ struct PreviewOverlay: View {
     }
 }
 
-private struct VideoPreview: View {
+/// Wraps AppKit's `AVPlayerView` directly. SwiftUI's `VideoPlayer` aborts in this app
+/// ("failed to demangle superclass of VideoPlayerView") while `AVPlayerView` works.
+private struct VideoPreview: NSViewRepresentable {
     let url: URL
-    @State private var player: AVPlayer?
 
-    var body: some View {
-        VideoPlayer(player: player)
-            .task(id: url) {
-                let player = AVPlayer(url: url)
-                self.player = player
-                player.play()
-            }
-            .onDisappear { player?.pause() }
+    func makeNSView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView()
+        view.controlsStyle = .floating
+        view.videoGravity = .resizeAspect
+        return view
+    }
+
+    func updateNSView(_ view: AVPlayerView, context: Context) {
+        guard (view.player?.currentItem?.asset as? AVURLAsset)?.url != url else { return }
+        view.player?.pause()
+        let player = AVPlayer(url: url)
+        view.player = player
+        player.play()
+    }
+
+    static func dismantleNSView(_ view: AVPlayerView, coordinator: ()) {
+        view.player?.pause()
+        view.player = nil
     }
 }
