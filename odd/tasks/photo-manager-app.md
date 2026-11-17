@@ -17,10 +17,10 @@ Branch: `feat/photo-manager-app` · Delivery: ask-on-risk · Test runner: `swift
 
 | ID | Specs | Route | Status | Commit |
 |----|-------|-------|--------|--------|
-| T1 | — | inline | pending | |
-| T2 | S4, S5, S6 | inline | pending | |
-| T3 | S1, S2, S3, S5 | inline | pending | |
-| T4 | S1–S7 | inline | pending | |
+| T1 | — | inline | done | cef38cf |
+| T2 | S4, S5, S6 | inline | done (19 tests) | cef38cf |
+| T3 | S1, S2, S3, S5 | inline | done (6 store tests; ImageCaptureCore adapter compile-checked only, needs a real iPhone) | 821ce24 |
+| T4 | S1–S7 | inline | partial: type-checks; real build blocked on Xcode | see log |
 
 - T1: Swift Package scaffold (Core library, App executable, tests).
 - T2: Domain models + selection + transfer use cases, test-first.
@@ -34,3 +34,6 @@ Branch: `feat/photo-manager-app` · Delivery: ask-on-risk · Test runner: `swift
 - L3: Verified in SDK headers: ImageCaptureCore exposes name, productKind, transportType, serialNumberString, batteryLevel, locked, accessRestrictedAppleDevice, iCloudPhotosEnabled, mediaFiles, requestDownloadFile, requestDeleteFiles. No iOS version or storage capacity.
 - L4: User decision: "Solo ImageCaptureCore". Design sidebar updated accordingly.
 - L5: Environment: no Xcode, Command Line Tools only (Swift 6.4.2, SDK 27.2); Swift Testing available. Packaging a signed .app will need Xcode later.
+- L6: RED/GREEN for T2 observed with `./scripts/test.sh` (wraps the Swift Testing plugin path missing from CLT).
+- L7: Bug found by test: `URL.resourceValues` returned a cached file size; store now reads `FileManager.attributesOfItem`.
+- L8: T4 blocker: SDK 27 `@State` is a macro; `SwiftUIMacros` plugin ships only with Xcode. Full app type-checked and linked in a scratch copy with an `@State` shim. Needs Xcode 26+ to build and run. HEIC→JPEG toggle from the design was dropped: conversion would break size verification and was not requested.
