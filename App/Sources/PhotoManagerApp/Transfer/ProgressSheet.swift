@@ -30,7 +30,7 @@ struct ProgressSheet: View {
 
             List(state.items) { item in
                 HStack(spacing: 12) {
-                    ThumbnailTile(item: item, isSelected: false, thumbnail: thumbnail)
+                    ThumbnailTile(item: item, isSelected: false, thumbnail: thumbnail, showsCheck: false)
                         .frame(width: 36, height: 36)
                         .allowsHitTesting(false)
                     VStack(alignment: .leading, spacing: 1) {

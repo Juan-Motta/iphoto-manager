@@ -54,6 +54,8 @@ struct ThumbnailTile: View {
     let item: MediaItem
     let isSelected: Bool
     let thumbnail: (MediaItem) async -> NSImage?
+    /// Hidden where the tile only illustrates items (confirm and progress sheets).
+    var showsCheck: Bool = true
     /// When set, hovering shows a button that opens the full-size preview.
     var onPreview: (() -> Void)? = nil
     @State private var image: NSImage?
@@ -68,7 +70,7 @@ struct ThumbnailTile: View {
                 }
             }
             .overlay(alignment: .bottomLeading) { badge.padding(7) }
-            .overlay(alignment: .topTrailing) { check.padding(7) }
+            .overlay(alignment: .topTrailing) { if showsCheck { check.padding(7) } }
             .overlay(alignment: .bottomTrailing) {
                 if let onPreview, isHovering {
                     Button("Preview", systemImage: "arrow.up.left.and.arrow.down.right", action: onPreview)

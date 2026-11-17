@@ -61,10 +61,11 @@ struct LibraryScreen: View {
             ConfirmSheet(
                 action: action,
                 items: model.selectedItems,
+                deviceName: model.device?.name ?? "your iPhone",
                 options: $model.options,
                 thumbnail: model.thumbnail(for:),
                 onCancel: { model.pendingAction = nil },
-                onConfirm: { Task { await model.perform(action) } }
+                onConfirm: { chosen in Task { await model.perform(chosen) } }
             )
         }
         .sheet(isPresented: transferPresented) {
