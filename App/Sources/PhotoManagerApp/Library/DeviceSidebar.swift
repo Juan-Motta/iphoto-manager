@@ -60,8 +60,14 @@ struct DeviceSidebar: View {
 
     private func details(_ device: DeviceInfo) -> some View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
-            row("Model", device.model)
-            row("Battery", device.batteryLevel.map { "\($0)%" } ?? "—")
+            // ImageCaptureCore often reports only the generic kind ("iPhone") and no battery;
+            // rows that would say nothing useful are hidden.
+            if !["", "iphone", "ipad", "ipod"].contains(device.model.lowercased()) {
+                row("Model", device.model)
+            }
+            if let battery = device.batteryLevel {
+                row("Battery", "\(battery)%")
+            }
             row("Photos & videos", librarySize.formatted(.byteCount(style: .file)))
             row("iCloud Photos", device.iCloudPhotosEnabled ? "On" : "Off")
         }
