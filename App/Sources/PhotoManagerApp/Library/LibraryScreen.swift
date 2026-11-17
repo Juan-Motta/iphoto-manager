@@ -40,6 +40,23 @@ struct LibraryScreen: View {
                 }
             }
         }
+        .overlay {
+            if let item = model.previewItem {
+                PreviewOverlay(
+                    item: item,
+                    content: model.previewContent,
+                    isSelected: model.selection.contains(item.id),
+                    hasPrevious: model.hasPreviousPreview,
+                    hasNext: model.hasNextPreview,
+                    thumbnail: model.thumbnail(for:),
+                    onPrevious: { model.showPreview(step: -1) },
+                    onNext: { model.showPreview(step: 1) },
+                    onToggleSelection: { model.selection.toggle(item.id) },
+                    onClose: model.closePreview
+                )
+            }
+        }
+        .animation(.smooth(duration: 0.2), value: model.previewItem?.id)
         .sheet(item: $model.pendingAction) { action in
             ConfirmSheet(
                 action: action,
@@ -84,6 +101,7 @@ struct LibraryScreen: View {
                 allSelected: { model.selection.containsAll(of: $0.items) },
                 onToggle: { model.selection.toggle($0.id) },
                 onToggleSection: model.toggle(section:),
+                onPreview: model.openPreview,
                 thumbnail: model.thumbnail(for:)
             )
         }

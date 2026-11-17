@@ -30,3 +30,12 @@ public struct MediaItem: Identifiable, Hashable, Sendable {
         }
     }
 }
+
+extension Array where Element == MediaItem {
+    /// The item `step` positions away from `id` (1 = next, -1 = previous), or nil past either end.
+    public func neighbor(of id: MediaItem.ID, step: Int) -> MediaItem? {
+        guard let index = firstIndex(where: { $0.id == id }) else { return nil }
+        let target = index + step
+        return indices.contains(target) ? self[target] : nil
+    }
+}

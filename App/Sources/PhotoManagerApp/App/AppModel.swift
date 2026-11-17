@@ -84,7 +84,7 @@ final class AppModel {
         for await event in monitor.events() {
             switch event {
             case .connected(let session):
-                // Item ids are PTP handles, unique only within one device session:
+                // Item ids are only unique within one device session:
                 // never carry a selection or pending action over to another device.
                 resetDevice()
                 self.session = session
@@ -129,6 +129,64 @@ final class AppModel {
         thumbnails = [:]
         selection.clear()
         pendingAction = nil
+        closePreview()
+        previewFiles = [:]
+        try? FileManager.default.removeItem(at: Self.previewFolder)
+    }
+
+    // MARK: Preview
+
+    enum PreviewContent: Equatable {
+        case loading
+        case ready(URL)
+        case failed(String)
+    }
+
+    /// The item shown full size; nil when the preview is closed.
+    private(set) var previewItem: MediaItem?
+    private(set) var previewContent: PreviewContent = .loading
+    private var previewFiles: [MediaItem.ID: URL] = [:]
+    private var previewTask: Task<Void, Never>?
+
+    /// Originals are downloaded here only to be displayed, never as the user's saved copy.
+    private static let previewFolder = FileManager.default.temporaryDirectory
+        .appending(path: "PhotoManagerPreview", directoryHint: .isDirectory)
+
+    var hasPreviousPreview: Bool { previewItem.flatMap { visibleItems.neighbor(of: $0.id, step: -1) } != nil }
+    var hasNextPreview: Bool { previewItem.flatMap { visibleItems.neighbor(of: $0.id, step: 1) } != nil }
+
+    func openPreview(_ item: MediaItem) {
+        previewItem = item
+        previewTask?.cancel()
+        if let cached = previewFiles[item.id] {
+            previewContent = .ready(cached)
+            return
+        }
+        previewContent = .loading
+        previewTask = Task { await loadPreview(item) }
+    }
+
+    func showPreview(step: Int) {
+        guard let current = previewItem, let next = visibleItems.neighbor(of: current.id, step: step) else { return }
+        openPreview(next)
+    }
+
+    func closePreview() {
+        previewTask?.cancel()
+        previewItem = nil
+    }
+
+    private func loadPreview(_ item: MediaItem) async {
+        guard let session else { return }
+        do {
+            try FileManager.default.createDirectory(at: Self.previewFolder, withIntermediateDirectories: true)
+            let url = try await session.download(item, into: Self.previewFolder)
+            previewFiles[item.id] = url
+            // Ignore a late result if the user already moved to another item.
+            if previewItem?.id == item.id { previewContent = .ready(url) }
+        } catch {
+            if previewItem?.id == item.id { previewContent = .failed(error.localizedDescription) }
+        }
     }
 
     // MARK: Library

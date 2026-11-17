@@ -10,6 +10,7 @@ struct MediaGrid: View {
     let allSelected: (LibrarySection) -> Bool
     let onToggle: (MediaItem) -> Void
     let onToggleSection: (LibrarySection) -> Void
+    let onPreview: (MediaItem) -> Void
     let thumbnail: (MediaItem) async -> NSImage?
 
     var body: some View {
@@ -26,8 +27,17 @@ struct MediaGrid: View {
                         }
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: columns), spacing: 6) {
                             ForEach(section.items) { item in
-                                ThumbnailTile(item: item, isSelected: isSelected(item.id), thumbnail: thumbnail)
-                                    .onTapGesture { onToggle(item) }
+                                ThumbnailTile(
+                                    item: item,
+                                    isSelected: isSelected(item.id),
+                                    thumbnail: thumbnail,
+                                    onPreview: { onPreview(item) }
+                                )
+                                .onTapGesture { onToggle(item) }
+                                .contextMenu {
+                                    Button("Preview", systemImage: "eye") { onPreview(item) }
+                                    Button(isSelected(item.id) ? "Deselect" : "Select") { onToggle(item) }
+                                }
                             }
                         }
                     }
@@ -44,7 +54,10 @@ struct ThumbnailTile: View {
     let item: MediaItem
     let isSelected: Bool
     let thumbnail: (MediaItem) async -> NSImage?
+    /// When set, hovering shows a button that opens the full-size preview.
+    var onPreview: (() -> Void)? = nil
     @State private var image: NSImage?
+    @State private var isHovering = false
 
     var body: some View {
         Color.secondary.opacity(0.12)
@@ -56,6 +69,17 @@ struct ThumbnailTile: View {
             }
             .overlay(alignment: .bottomLeading) { badge.padding(7) }
             .overlay(alignment: .topTrailing) { check.padding(7) }
+            .overlay(alignment: .bottomTrailing) {
+                if let onPreview, isHovering {
+                    Button("Preview", systemImage: "arrow.up.left.and.arrow.down.right", action: onPreview)
+                        .labelStyle(.iconOnly)
+                        .buttonStyle(.glass)
+                        .controlSize(.small)
+                        .padding(6)
+                        .transition(.opacity)
+                }
+            }
+            .onHover { hovering in withAnimation(.easeOut(duration: 0.15)) { isHovering = hovering } }
             .overlay {
                 if isSelected {
                     RoundedRectangle(cornerRadius: 10)
@@ -69,6 +93,7 @@ struct ThumbnailTile: View {
             .accessibilityElement()
             .accessibilityLabel(accessibilityLabel)
             .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+            .accessibilityAction(named: "Preview") { onPreview?() }
     }
 
     @ViewBuilder private var badge: some View {
