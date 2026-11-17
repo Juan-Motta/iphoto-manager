@@ -75,19 +75,30 @@ struct ConfirmSheet: View {
         }
     }
 
+    /// Six equal slots that share the sheet's width, so the row never overflows and tiles keep
+    /// the same size for 1 item or 200. The last slot shows "+N" when items don't fit.
     private var thumbnails: some View {
-        HStack(spacing: 8) {
-            ForEach(items.prefix(previewLimit)) { item in
-                ThumbnailTile(item: item, isSelected: false, thumbnail: thumbnail, showsCheck: false)
-                    .frame(width: 72, height: 72)
-                    .allowsHitTesting(false)
-            }
-            if items.count > previewLimit {
-                Text("+\(items.count - previewLimit)")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 72, height: 72)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 10))
+        let slots = previewLimit + 1
+        let overflow = items.count > slots ? items.count - previewLimit : 0
+        let shown = Array(items.prefix(overflow > 0 ? previewLimit : slots))
+        return HStack(spacing: 8) {
+            ForEach(0..<slots, id: \.self) { index in
+                Group {
+                    if index < shown.count {
+                        ThumbnailTile(item: shown[index], isSelected: false, thumbnail: thumbnail, showsCheck: false)
+                            .allowsHitTesting(false)
+                    } else if index == previewLimit, overflow > 0 {
+                        Text("+\(overflow)")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .glassEffect(.regular, in: .rect(cornerRadius: 10))
+                    } else {
+                        Color.clear
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .aspectRatio(1, contentMode: .fit)
             }
         }
         .accessibilityElement(children: .ignore)
