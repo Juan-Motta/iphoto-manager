@@ -52,6 +52,8 @@ public protocol DeviceSession: MediaTransferring {
 public enum DeviceEvent: Sendable {
     case connected(any DeviceSession)
     case changed(DeviceInfo)
+    /// Photos or videos were added to or removed from the device; its library should be reloaded.
+    case libraryChanged(id: String)
     case disconnected(id: String)
 }
 

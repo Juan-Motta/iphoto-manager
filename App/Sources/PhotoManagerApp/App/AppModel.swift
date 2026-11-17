@@ -69,6 +69,7 @@ final class AppModel {
     private(set) var device: DeviceInfo?
     private(set) var library: [MediaItem] = []
     private(set) var isLoadingLibrary = false
+    private var reloadPending = false
     private(set) var loadError: String?
 
     var selection = Selection()
@@ -113,6 +114,10 @@ final class AppModel {
                 if becameReady { await reloadLibrary() }
             case .changed:
                 break
+            case .libraryChanged(let id) where id == device?.id:
+                await reloadLibrary()
+            case .libraryChanged:
+                break
             case .disconnected(let id) where id == device?.id:
                 resetDevice()
             case .disconnected:
@@ -122,16 +127,24 @@ final class AppModel {
     }
 
     func reloadLibrary() async {
-        guard let session, device?.access == .ready else { return }
+        guard let session, let deviceID = device?.id, device?.access == .ready else { return }
+        // A change that arrives mid-load is not lost: the load runs once more when it ends.
+        if isLoadingLibrary { reloadPending = true; return }
         isLoadingLibrary = true
-        loadError = nil
         defer { isLoadingLibrary = false }
-        do {
-            library = try await session.loadLibrary()
-            selection.keepOnly(library)
-        } catch {
-            loadError = error.localizedDescription
-        }
+        repeat {
+            reloadPending = false
+            loadError = nil
+            do {
+                let items = try await session.loadLibrary()
+                // The device may have changed while loading.
+                guard device?.id == deviceID else { return }
+                library = items
+                selection.keepOnly(library)
+            } catch {
+                loadError = error.localizedDescription
+            }
+        } while reloadPending
     }
 
     func eject() async {

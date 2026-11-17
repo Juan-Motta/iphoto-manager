@@ -12,12 +12,13 @@ let deviceLog = Logger(subsystem: "com.iphotomanager.app", category: "device")
 public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
     nonisolated public let id: String
     private let camera: ICCameraDevice
-    private let onChange: (DeviceInfo) -> Void
+    private let onChange: (DeviceEvent) -> Void
+    private var libraryChangeTask: Task<Void, Never>?
     private var files: [MediaItem.ID: ICCameraFile] = [:]
     private var catalogReady = false
     private var catalogWaiters: [CheckedContinuation<Void, Never>] = []
 
-    init(camera: ICCameraDevice, onChange: @escaping (DeviceInfo) -> Void) {
+    init(camera: ICCameraDevice, onChange: @escaping (DeviceEvent) -> Void) {
         self.id = camera.uuidString ?? UUID().uuidString
         self.camera = camera
         self.onChange = onChange
@@ -45,7 +46,7 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
     public func loadLibrary() async throws -> [MediaItem] {
         await waitForCatalog()
         let settled = await CatalogSettling.waitUntilStable { self.camera.mediaFiles?.count ?? 0 }
-        deviceLog.notice("load library: \(settled) files, open=\(self.isOpen)")
+        deviceLog.notice("load library: \(settled) files, \(self.camera.contentCatalogPercentCompleted)%, open=\(self.isOpen)")
         let cameraFiles = (camera.mediaFiles ?? []).compactMap { $0 as? ICCameraFile }
         files = [:]
         let items = cameraFiles.map { file -> MediaItem in
@@ -147,7 +148,19 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
         catalogWaiters.removeAll()
     }
 
-    fileprivate func notifyChange() { onChange(currentInfo()) }
+    fileprivate func notifyChange() { onChange(.changed(currentInfo())) }
+
+    /// ImageCaptureCore reports the catalog as complete while files are still arriving
+    /// (177 files at "ready", the other 4598 two seconds later), so every later addition or
+    /// removal reloads the library. Bursts are grouped into one reload.
+    fileprivate func scheduleLibraryChange() {
+        libraryChangeTask?.cancel()
+        libraryChangeTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(700))
+            guard !Task.isCancelled, let self else { return }
+            self.onChange(.libraryChanged(id: self.id))
+        }
+    }
 }
 
 // ImageCaptureCore delivers camera delegate callbacks on the main thread. Request completion
@@ -155,7 +168,7 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
 extension ImageCaptureDeviceSession: ICCameraDeviceDelegate {
     nonisolated public func deviceDidBecomeReady(withCompleteContentCatalog device: ICCameraDevice) {
         MainActor.assumeIsolated {
-            deviceLog.notice("catalog ready: \(self.camera.mediaFiles?.count ?? -1) files, open=\(self.isOpen)")
+            deviceLog.notice("catalog ready: \(self.camera.mediaFiles?.count ?? -1) files, \(self.camera.contentCatalogPercentCompleted)%, open=\(self.isOpen)")
             markCatalogReady()
         }
     }
@@ -182,8 +195,20 @@ extension ImageCaptureDeviceSession: ICCameraDeviceDelegate {
     nonisolated public func didRemove(_ device: ICDevice) {}
     nonisolated public func device(_ device: ICDevice, didOpenSessionWithError error: (any Error)?) {}
     nonisolated public func device(_ device: ICDevice, didCloseSessionWithError error: (any Error)?) {}
-    nonisolated public func cameraDevice(_ camera: ICCameraDevice, didAdd items: [ICCameraItem]) {}
-    nonisolated public func cameraDevice(_ camera: ICCameraDevice, didRemove items: [ICCameraItem]) {}
+    nonisolated public func cameraDevice(_ camera: ICCameraDevice, didAdd items: [ICCameraItem]) {
+        let added = items.count
+        MainActor.assumeIsolated {
+            deviceLog.notice("items added: \(added), now \(self.camera.mediaFiles?.count ?? -1) files, \(self.camera.contentCatalogPercentCompleted)%")
+            scheduleLibraryChange()
+        }
+    }
+    nonisolated public func cameraDevice(_ camera: ICCameraDevice, didRemove items: [ICCameraItem]) {
+        let removed = items.count
+        MainActor.assumeIsolated {
+            deviceLog.notice("items removed: \(removed)")
+            scheduleLibraryChange()
+        }
+    }
     nonisolated public func cameraDevice(_ camera: ICCameraDevice, didRenameItems items: [ICCameraItem]) {}
     nonisolated public func cameraDevice(_ camera: ICCameraDevice, didReceiveThumbnail thumbnail: CGImage?, for item: ICCameraItem, error: (any Error)?) {}
     nonisolated public func cameraDevice(_ camera: ICCameraDevice, didReceiveMetadata metadata: [AnyHashable: Any]?, for item: ICCameraItem, error: (any Error)?) {}

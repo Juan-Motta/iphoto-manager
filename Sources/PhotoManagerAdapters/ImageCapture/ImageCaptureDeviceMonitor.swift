@@ -28,8 +28,8 @@ public final class ImageCaptureDeviceMonitor: NSObject, DeviceMonitor {
 
     fileprivate func add(_ device: ICDevice) {
         guard let camera = device as? ICCameraDevice else { return }
-        let session = ImageCaptureDeviceSession(camera: camera) { [weak self] info in
-            self?.continuation?.yield(.changed(info))
+        let session = ImageCaptureDeviceSession(camera: camera) { [weak self] event in
+            self?.continuation?.yield(event)
         }
         sessions[session.id] = session
         deviceLog.notice("device added: locked=\(camera.isLocked) restricted=\(camera.isAccessRestrictedAppleDevice)")
