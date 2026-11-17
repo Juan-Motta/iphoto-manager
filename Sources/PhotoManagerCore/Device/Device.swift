@@ -56,6 +56,7 @@ public enum DeviceEvent: Sendable {
 }
 
 /// Watches for iPhones being plugged in and out.
-public protocol DeviceMonitor: Sendable {
+@MainActor
+public protocol DeviceMonitor: AnyObject {
     func events() -> AsyncStream<DeviceEvent>
 }
