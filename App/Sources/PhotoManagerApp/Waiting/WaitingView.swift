@@ -57,7 +57,7 @@ struct WaitingView: View {
     private var message: String {
         switch device?.access {
         case .locked: "\(device?.name ?? "Your iPhone") is connected but locked. Unlock it to see its photos."
-        case .needsTrust: "Tap “Trust” on \(device?.name ?? "your iPhone") and enter its passcode."
+        case .needsTrust: "Unlock \(device?.name ?? "your iPhone"). If it asks, tap “Trust” and enter its passcode."
         default: "Plug it into this Mac with a cable. Photo Manager detects it automatically and shows its photos and videos."
         }
     }

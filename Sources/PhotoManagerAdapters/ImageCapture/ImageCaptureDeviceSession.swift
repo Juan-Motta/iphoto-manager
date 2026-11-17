@@ -20,12 +20,16 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
         camera.delegate = self
     }
 
-    func open() async throws {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            camera.requestOpenSession(options: [:]) { error in
-                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
-            }
+    private var isOpen = false
+
+    /// Opens the session. While the iPhone is locked or not trusted, ImageCaptureCore rejects it
+    /// ("Please unlock", code -9943); it is retried when the access restriction is removed.
+    func openWhenAllowed() async {
+        guard !isOpen else { return }
+        let error: (any Error)? = await withCheckedContinuation { continuation in
+            camera.requestOpenSession(options: [:]) { error in continuation.resume(returning: error) }
         }
+        if error == nil { isOpen = true }
     }
 
     // MARK: DeviceSession
@@ -37,9 +41,10 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
         let cameraFiles = (camera.mediaFiles ?? []).compactMap { $0 as? ICCameraFile }
         files = [:]
         let items = cameraFiles.map { file -> MediaItem in
+            let id = Self.itemID(file)
             let item = MediaItem(
-                id: String(file.ptpObjectHandle),
-                fileName: file.name ?? "Item \(file.ptpObjectHandle)",
+                id: id,
+                fileName: file.name ?? "Item \(id)",
                 byteSize: Int64(file.fileSize),
                 createdAt: file.creationDate ?? file.fileCreationDate,
                 duration: file.duration > 0 ? file.duration : nil
@@ -47,7 +52,15 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
             files[item.id] = file
             return item
         }
+        try LibraryIntegrity.ensureUniqueIDs(items)
         return items.sorted { ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast) }
+    }
+
+    /// iPhones report `ptpObjectHandle` 0 for every file, so it cannot identify items.
+    /// The camera item object itself is unique for the life of this session, which is the
+    /// only scope ids are valid in (selection is cleared when a device connects).
+    private static func itemID(_ item: ICCameraItem) -> String {
+        String(UInt(bitPattern: ObjectIdentifier(item).hashValue), radix: 16)
     }
 
     public func thumbnail(for item: MediaItem) async -> Data? {
@@ -82,13 +95,13 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
     public func delete(_ items: [MediaItem]) async -> Set<MediaItem.ID> {
         let targets = items.compactMap { files[$0.id] }
         guard !targets.isEmpty else { return [] }
-        let deletedHandles: Set<UInt32> = await withCheckedContinuation { continuation in
+        let deletedIDs: Set<MediaItem.ID> = await withCheckedContinuation { continuation in
             _ = camera.requestDeleteFiles(targets, deleteFailed: { _ in }, completion: { result, _ in
                 let succeeded = result[.successful] ?? []
-                continuation.resume(returning: Set(succeeded.map(\.ptpObjectHandle)))
+                continuation.resume(returning: Set(succeeded.map(Self.itemID)))
             })
         }
-        let deleted = Set(items.map(\.id).filter { id in UInt32(id).map(deletedHandles.contains) ?? false })
+        let deleted = Set(items.map(\.id)).intersection(deletedIDs)
         for id in deleted { files[id] = nil }
         return deleted
     }
@@ -136,7 +149,10 @@ extension ImageCaptureDeviceSession: ICCameraDeviceDelegate {
     }
 
     nonisolated public func cameraDeviceDidRemoveAccessRestriction(_ device: ICDevice) {
-        MainActor.assumeIsolated { notifyChange() }
+        MainActor.assumeIsolated {
+            notifyChange()
+            Task { await openWhenAllowed() }
+        }
     }
 
     nonisolated public func cameraDeviceDidEnableAccessRestriction(_ device: ICDevice) {

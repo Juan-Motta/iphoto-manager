@@ -31,16 +31,11 @@ public final class ImageCaptureDeviceMonitor: NSObject, DeviceMonitor {
         let session = ImageCaptureDeviceSession(camera: camera) { [weak self] info in
             self?.continuation?.yield(.changed(info))
         }
-        let id = session.id
-        sessions[id] = session
-        Task {
-            do {
-                try await session.open()
-                continuation?.yield(.connected(session))
-            } catch {
-                sessions[id] = nil
-            }
-        }
+        sessions[session.id] = session
+        // Report the device right away: a freshly plugged iPhone is access-restricted until it is
+        // unlocked and trusted, and the UI must show that state instead of "Searching…".
+        continuation?.yield(.connected(session))
+        Task { await session.openWhenAllowed() }
     }
 
     fileprivate func remove(_ device: ICDevice) {
