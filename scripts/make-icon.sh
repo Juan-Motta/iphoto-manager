@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Regenerates App/Resources/AppIcon.icns (and the README copy) from scripts/artwork.swift.
+# Regenerates App/Resources/AppIcon.icns (and the README copy) from App/Resources/AppIcon-source.png.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-swift "$ROOT/scripts/artwork.swift" icon "$WORK/icon.png"
+swift "$ROOT/scripts/artwork.swift" icon "$ROOT/App/Resources/AppIcon-source.png" "$WORK/icon.png"
 
 ICONSET="$WORK/AppIcon.iconset"
 mkdir -p "$ICONSET"

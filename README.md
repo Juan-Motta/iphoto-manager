@@ -136,7 +136,7 @@ The bundle is built for the Mac's own architecture.
 
 ### Icon and installer artwork
 
-The app icon and the installer background are drawn in code by `scripts/artwork.swift`. `make-icon.sh` turns the icon into `App/Resources/AppIcon.icns` (and `docs/images/icon.png`); `build-dmg.sh` renders the background on every build.
+The icon artwork is `App/Resources/AppIcon-source.png`. `make-icon.sh` cuts its tile onto the macOS icon grid and builds `App/Resources/AppIcon.icns` (and `docs/images/icon.png`). The installer background is drawn in code by `scripts/artwork.swift` on every DMG build.
 
 ### Screenshots
 
