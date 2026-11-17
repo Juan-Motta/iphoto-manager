@@ -29,6 +29,8 @@ public struct FileSystemMediaStore: MediaStore {
     }
 
     public func isVerifiedCopy(at url: URL, of item: MediaItem) -> Bool {
+        // A device that reports size 0 gives nothing to verify against: never treat it as safe.
+        guard item.byteSize > 0 else { return false }
         // FileManager reads fresh attributes; URL.resourceValues may return cached ones.
         guard
             let attributes = try? FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false)),

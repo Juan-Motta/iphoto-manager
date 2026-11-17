@@ -84,6 +84,9 @@ final class AppModel {
         for await event in monitor.events() {
             switch event {
             case .connected(let session):
+                // Item ids are PTP handles, unique only within one device session:
+                // never carry a selection or pending action over to another device.
+                resetDevice()
                 self.session = session
                 device = await session.info
                 await reloadLibrary()
@@ -185,7 +188,8 @@ final class AppModel {
 
     func perform(_ action: TransferAction) async {
         pendingAction = nil
-        guard let session else { return }
+        // One transfer at a time: a double click on Confirm must not start a second run.
+        guard transfer == nil, let session, let deviceID = device?.id else { return }
         let items = selectedItems
         guard !items.isEmpty else { return }
 
@@ -199,10 +203,12 @@ final class AppModel {
             Task { @MainActor [weak self] in self?.transfer?.progress = progress }
         }
 
+        transfer?.report = report
+        // If another device connected meanwhile, these ids mean nothing in its library.
+        guard device?.id == deviceID else { return }
         let removed = report.removedFromDevice
         library.removeAll { removed.contains($0.id) }
         selection.deselect(items.filter { report.outcomes[$0.id].map(Self.isFinished) ?? false })
-        transfer?.report = report
     }
 
     func closeTransfer() { transfer = nil }

@@ -51,6 +51,13 @@ struct FileSystemMediaStoreTests {
         #expect(store.isVerifiedCopy(at: file, of: item))
     }
 
+    @Test func anEmptyFileIsNeverAVerifiedCopy() throws {
+        let item = MediaItem(id: "1", fileName: "A.HEIC", byteSize: 0)
+        let file = root.appending(path: "A.HEIC")
+        try write(0, to: file)
+        #expect(!store.isVerifiedCopy(at: file, of: item))
+    }
+
     @Test func existingCopyRequiresSameNameAndSize() throws {
         let item = MediaItem(id: "1", fileName: "A.HEIC", byteSize: 4)
         #expect(store.existingCopy(of: item, in: root) == nil)
