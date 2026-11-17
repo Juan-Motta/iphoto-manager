@@ -27,7 +27,7 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
     func openWhenAllowed() async {
         guard !isOpen else { return }
         let error: (any Error)? = await withCheckedContinuation { continuation in
-            camera.requestOpenSession(options: [:]) { error in continuation.resume(returning: error) }
+            camera.requestOpenSession(options: [:]) { @Sendable error in continuation.resume(returning: error) }
         }
         if error == nil { isOpen = true }
     }
@@ -59,14 +59,14 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
     /// iPhones report `ptpObjectHandle` 0 for every file, so it cannot identify items.
     /// The camera item object itself is unique for the life of this session, which is the
     /// only scope ids are valid in (selection is cleared when a device connects).
-    private static func itemID(_ item: ICCameraItem) -> String {
+    nonisolated private static func itemID(_ item: ICCameraItem) -> String {
         String(UInt(bitPattern: ObjectIdentifier(item).hashValue), radix: 16)
     }
 
     public func thumbnail(for item: MediaItem) async -> Data? {
         guard let file = files[item.id] else { return nil }
         return await withCheckedContinuation { continuation in
-            file.requestThumbnailData(options: [.imageSourceThumbnailMaxPixelSize: 360]) { data, _ in
+            file.requestThumbnailData(options: [.imageSourceThumbnailMaxPixelSize: 360]) { @Sendable data, _ in
                 continuation.resume(returning: data)
             }
         }
@@ -81,7 +81,7 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
             .overwrite: false,
         ]
         let savedName: String = try await withCheckedThrowingContinuation { continuation in
-            _ = file.requestDownload(options: options) { filename, error in
+            _ = file.requestDownload(options: options) { @Sendable filename, error in
                 if let error {
                     continuation.resume(throwing: error)
                 } else {
@@ -96,7 +96,7 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
         let targets = items.compactMap { files[$0.id] }
         guard !targets.isEmpty else { return [] }
         let deletedIDs: Set<MediaItem.ID> = await withCheckedContinuation { continuation in
-            _ = camera.requestDeleteFiles(targets, deleteFailed: { _ in }, completion: { result, _ in
+            _ = camera.requestDeleteFiles(targets, deleteFailed: { @Sendable _ in }, completion: { @Sendable result, _ in
                 let succeeded = result[.successful] ?? []
                 continuation.resume(returning: Set(succeeded.map(Self.itemID)))
             })
@@ -108,7 +108,7 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
 
     public func eject() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            camera.requestEject { _ in continuation.resume() }
+            camera.requestEject { @Sendable _ in continuation.resume() }
         }
     }
 
@@ -142,7 +142,8 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
     fileprivate func notifyChange() { onChange(currentInfo()) }
 }
 
-// ImageCaptureCore delivers camera delegate callbacks on the main thread.
+// ImageCaptureCore delivers camera delegate callbacks on the main thread. Request completion
+// blocks, however, run on its own queues: they are marked @Sendable so they are not main-actor isolated.
 extension ImageCaptureDeviceSession: ICCameraDeviceDelegate {
     nonisolated public func deviceDidBecomeReady(withCompleteContentCatalog device: ICCameraDevice) {
         MainActor.assumeIsolated { markCatalogReady() }
