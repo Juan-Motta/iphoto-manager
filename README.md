@@ -12,7 +12,7 @@ Hexagonal, one Swift package:
 | `PhotoManagerAdapters` | `ImageCaptureDeviceMonitor` / `ImageCaptureDeviceSession` (ImageCaptureCore) and `FileSystemMediaStore` (disk). |
 | `App/` → `PhotoManagerApp` | Separate package with the SwiftUI app. `AppModel` is the only type that talks to the domain; views are presentational. |
 
-Safety rule: **Save & Delete removes an item from the iPhone only after its copy on the Mac is verified** (same file size). Failed copies stay on the iPhone.
+Safety rule: **Save & Delete removes an item from the iPhone only after its copy on the Mac is verified** (same file size). A file already on the Mac with the same name and size is not trusted on its own: the item is downloaded again and compared byte by byte; an identical download is discarded, a different one is kept as a new copy. Failed copies stay on the iPhone.
 
 Device data is limited to what ImageCaptureCore exposes: name, model, connection, battery, iCloud Photos, lock/trust state. iOS version and storage capacity are not available.
 

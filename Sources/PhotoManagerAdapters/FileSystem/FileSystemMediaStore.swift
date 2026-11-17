@@ -40,6 +40,17 @@ public struct FileSystemMediaStore: MediaStore {
         return size.int64Value == item.byteSize
     }
 
+    public func contentsEqual(_ first: URL, _ second: URL) -> Bool {
+        FileManager.default.contentsEqual(
+            atPath: first.path(percentEncoded: false),
+            andPath: second.path(percentEncoded: false)
+        )
+    }
+
+    public func remove(_ url: URL) throws {
+        try FileManager.default.removeItem(at: url)
+    }
+
     /// A file name in `folder` that does not overwrite an existing file:
     /// `IMG_0001.HEIC`, then `IMG_0001 (1).HEIC`, `IMG_0001 (2).HEIC`…
     public static func availableFileName(_ fileName: String, in folder: URL) -> String {

@@ -16,4 +16,8 @@ public protocol MediaStore: Sendable {
     func existingCopy(of item: MediaItem, in folder: URL) -> URL?
     /// True when the file at `url` is a complete copy of `item`.
     func isVerifiedCopy(at url: URL, of item: MediaItem) -> Bool
+    /// Byte-for-byte comparison of two files on the Mac.
+    func contentsEqual(_ first: URL, _ second: URL) -> Bool
+    /// Removes a file written during the transfer (for example an identical duplicate).
+    func remove(_ url: URL) throws
 }

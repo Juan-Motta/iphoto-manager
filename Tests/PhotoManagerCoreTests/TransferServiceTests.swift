@@ -59,15 +59,39 @@ struct TransferServiceTests {
         #expect(await device.deleteRequests == [["a"]])
     }
 
-    @Test func saveAndDeleteAlsoDeletesItemsAlreadySavedBefore() async {
+    @Test func saveAndDeleteTrustsAnExistingCopyOnlyAfterComparingContent() async {
         let device = FakeDevice()
-        let service = TransferService(device: device, store: FakeStore(existing: ["A.HEIC"]))
+        let store = FakeStore(existing: ["A.HEIC"])
+        let service = TransferService(device: device, store: store)
 
         let report = await service.run(.saveAndDelete, items: [a], options: options)
 
         #expect(report.outcomes == ["a": .savedAndDeleted])
-        #expect(await device.downloaded.isEmpty)
+        #expect(await device.downloaded == ["a"])
+        #expect(store.removed == ["A.HEIC"]) // the identical duplicate is discarded
         #expect(await device.deleteRequests == [["a"]])
+    }
+
+    @Test func saveAndDeleteKeepsANewCopyWhenTheExistingFileIsADifferentPhoto() async {
+        let device = FakeDevice()
+        let store = FakeStore(existing: ["A.HEIC"], differentContent: ["A.HEIC"])
+        let service = TransferService(device: device, store: store)
+
+        let report = await service.run(.saveAndDelete, items: [a], options: options)
+
+        #expect(report.outcomes == ["a": .savedAndDeleted])
+        #expect(store.removed.isEmpty) // both photos stay on the Mac
+        #expect(await device.deleteRequests == [["a"]])
+    }
+
+    @Test func saveAndDeleteKeepsTheItemWhenTheContentCheckDownloadFails() async {
+        let device = FakeDevice(failingDownloads: ["a"])
+        let service = TransferService(device: device, store: FakeStore(existing: ["A.HEIC"]))
+
+        let report = await service.run(.saveAndDelete, items: [a], options: options)
+
+        #expect(report.outcomes == ["a": .failed(.downloadFailed)])
+        #expect(await device.deleteRequests.isEmpty)
     }
 
     @Test func saveAndDeleteKeepsTheCopyWhenTheIPhoneRefusesToDelete() async {
@@ -155,7 +179,8 @@ actor FakeDevice: MediaTransferring {
     func download(_ item: MediaItem, into folder: URL) async throws -> URL {
         if failingDownloads.contains(item.id) { throw URLError(.cannotWriteToFile) }
         downloaded.append(item.id)
-        return folder.appending(path: item.fileName)
+        // Like the real adapter, never overwrite: downloads get their own file name.
+        return folder.appending(path: FakeStore.downloadPrefix + item.fileName)
     }
 
     func delete(_ items: [MediaItem]) async -> Set<MediaItem.ID> {
@@ -164,9 +189,37 @@ actor FakeDevice: MediaTransferring {
     }
 }
 
-struct FakeStore: MediaStore {
-    var existing: Set<String> = []
-    var unverifiable: Set<String> = []
+final class FakeStore: MediaStore, @unchecked Sendable {
+    let existing: Set<String>
+    let unverifiable: Set<String>
+    /// Existing copies whose bytes differ from what the device sends (same name and size).
+    let differentContent: Set<String>
+    private let lock = NSLock()
+    private var removedNames: [String] = []
+
+    init(existing: Set<String> = [], unverifiable: Set<String> = [], differentContent: Set<String> = []) {
+        self.existing = existing
+        self.unverifiable = unverifiable
+        self.differentContent = differentContent
+    }
+
+    static let downloadPrefix = "downloaded-"
+
+    private static func originalName(_ url: URL) -> String {
+        let name = url.lastPathComponent
+        return name.hasPrefix(downloadPrefix) ? String(name.dropFirst(downloadPrefix.count)) : name
+    }
+
+    /// Original file names of the downloads the service discarded.
+    var removed: [String] { lock.withLock { removedNames } }
+
+    func contentsEqual(_ first: URL, _ second: URL) -> Bool {
+        !differentContent.contains(Self.originalName(first))
+    }
+
+    func remove(_ url: URL) throws {
+        lock.withLock { removedNames.append(Self.originalName(url)) }
+    }
 
     func folder(for item: MediaItem, options: TransferOptions) throws -> URL { options.destination }
 
@@ -175,7 +228,7 @@ struct FakeStore: MediaStore {
     }
 
     func isVerifiedCopy(at url: URL, of item: MediaItem) -> Bool {
-        !unverifiable.contains(url.lastPathComponent)
+        !unverifiable.contains(Self.originalName(url))
     }
 }
 

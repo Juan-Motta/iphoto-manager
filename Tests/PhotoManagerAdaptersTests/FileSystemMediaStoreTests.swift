@@ -76,3 +76,33 @@ struct FileSystemMediaStoreTests {
         #expect(FileSystemMediaStore.availableFileName("IMG_0001.HEIC", in: root) == "IMG_0001 (2).HEIC")
     }
 }
+
+@Suite("FileSystemMediaStore content")
+struct FileSystemMediaStoreContentTests {
+    let root: URL
+    let store = FileSystemMediaStore()
+
+    init() throws {
+        root = FileManager.default.temporaryDirectory.appending(path: "pm-tests-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    }
+
+    @Test func contentsEqualComparesBytesNotJustSize() throws {
+        let first = root.appending(path: "A.HEIC")
+        let same = root.appending(path: "A (1).HEIC")
+        let other = root.appending(path: "A (2).HEIC")
+        try Data([1, 2, 3]).write(to: first)
+        try Data([1, 2, 3]).write(to: same)
+        try Data([9, 9, 9]).write(to: other)
+
+        #expect(store.contentsEqual(first, same))
+        #expect(!store.contentsEqual(first, other))
+    }
+
+    @Test func removeDeletesTheFile() throws {
+        let file = root.appending(path: "A (1).HEIC")
+        try Data([1]).write(to: file)
+        try store.remove(file)
+        #expect(!FileManager.default.fileExists(atPath: file.path(percentEncoded: false)))
+    }
+}

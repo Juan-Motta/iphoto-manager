@@ -48,7 +48,7 @@ struct ConfirmSheet: View {
                         }
                     }
                     Toggle("Organize into folders by date", isOn: $options.organizeByDate)
-                    Toggle("Skip items already on this Mac", isOn: $options.skipExisting)
+                    Toggle("Don’t duplicate identical files already on this Mac", isOn: $options.skipExisting)
                 }
                 .formStyle(.grouped)
                 .scrollDisabled(true)
