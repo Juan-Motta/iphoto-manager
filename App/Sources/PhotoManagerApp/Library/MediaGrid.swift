@@ -5,7 +5,7 @@ import SwiftUI
 /// Thumbnail grid grouped by day, with per-item and per-day selection.
 struct MediaGrid: View {
     let sections: [LibrarySection]
-    let columns: Int
+    let size: ThumbnailSize
     let isSelected: (MediaItem.ID) -> Bool
     let allSelected: (LibrarySection) -> Bool
     let onToggle: (MediaItem) -> Void
@@ -25,7 +25,7 @@ struct MediaGrid: View {
                             Button(allSelected(section) ? "Deselect" : "Select") { onToggleSection(section) }
                                 .buttonStyle(.borderless)
                         }
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: columns), spacing: 6) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: size.minimumTileWidth), spacing: 6)], spacing: 6) {
                             ForEach(section.items) { item in
                                 ThumbnailTile(
                                     item: item,
@@ -33,6 +33,8 @@ struct MediaGrid: View {
                                     thumbnail: thumbnail,
                                     onPreview: { onPreview(item) }
                                 )
+                                // A new identity per size reloads the thumbnail at the matching resolution.
+                                .id("\(item.id)-\(size.rawValue)")
                                 .onTapGesture { onToggle(item) }
                                 .contextMenu {
                                     Button("Preview", systemImage: "eye") { onPreview(item) }

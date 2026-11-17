@@ -37,6 +37,18 @@ enum LibraryFilter: String, CaseIterable, Identifiable {
     }
 }
 
+enum ThumbnailSize: String, CaseIterable, Identifiable {
+    case standard, large
+
+    var id: Self { self }
+    var title: String { self == .standard ? "Default" : "Large" }
+    var symbol: String { self == .standard ? "square.grid.3x3" : "square.grid.2x2" }
+    /// Minimum tile width in points; the grid fits as many columns as the window allows.
+    var minimumTileWidth: CGFloat { self == .standard ? 110 : 220 }
+    /// Requested from the iPhone: about 2× the tile width so Retina screens stay sharp.
+    var maxPixelSize: Int { self == .standard ? 360 : 720 }
+}
+
 struct LibrarySection: Identifiable {
     let id: Date
     let title: String
@@ -61,6 +73,9 @@ final class AppModel {
 
     var selection = Selection()
     var filter: LibraryFilter = .all
+    var thumbnailSize: ThumbnailSize = ThumbnailSize(rawValue: UserDefaults.standard.string(forKey: "thumbnailSize") ?? "") ?? .standard {
+        didSet { UserDefaults.standard.set(thumbnailSize.rawValue, forKey: "thumbnailSize") }
+    }
     var options = TransferOptions(
         destination: FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0]
             .appending(path: "iPhone Import", directoryHint: .isDirectory)
@@ -72,7 +87,8 @@ final class AppModel {
 
     private let monitor: any DeviceMonitor
     private var session: (any DeviceSession)?
-    private var thumbnails: [MediaItem.ID: NSImage] = [:]
+    /// Keyed by item and pixel size, so switching sizes keeps both sets cached.
+    private var thumbnails: [String: NSImage] = [:]
 
     init(monitor: any DeviceMonitor) {
         self.monitor = monitor
@@ -213,9 +229,11 @@ final class AppModel {
     }
 
     func thumbnail(for item: MediaItem) async -> NSImage? {
-        if let cached = thumbnails[item.id] { return cached }
-        guard let data = await session?.thumbnail(for: item), let image = NSImage(data: data) else { return nil }
-        thumbnails[item.id] = image
+        let pixels = thumbnailSize.maxPixelSize
+        let key = "\(item.id)@\(pixels)"
+        if let cached = thumbnails[key] { return cached }
+        guard let data = await session?.thumbnail(for: item, maxPixelSize: pixels), let image = NSImage(data: data) else { return nil }
+        thumbnails[key] = image
         return image
     }
 

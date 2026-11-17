@@ -4,7 +4,6 @@ import SwiftUI
 /// Container for the connected-device screen: sidebar, grid, selection bar and sheets.
 struct LibraryScreen: View {
     @Bindable var model: AppModel
-    @State private var columns: Double = 7
 
     var body: some View {
         NavigationSplitView {
@@ -34,9 +33,14 @@ struct LibraryScreen: View {
             .navigationTitle(model.filter.title)
             .navigationSubtitle("\(model.visibleItems.count) items on this iPhone")
             .toolbar {
-                ToolbarItemGroup {
-                    Button("Smaller Thumbnails", systemImage: "minus") { columns = min(columns + 1, 10) }
-                    Button("Larger Thumbnails", systemImage: "plus") { columns = max(columns - 1, 3) }
+                ToolbarItem {
+                    Picker("Thumbnail Size", selection: $model.thumbnailSize) {
+                        ForEach(ThumbnailSize.allCases) { size in
+                            Label(size.title, systemImage: size.symbol).tag(size)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .help("Thumbnail size")
                 }
                 ToolbarItem {
                     Button("Reload", systemImage: "arrow.clockwise") { Task { await model.reloadLibrary() } }
@@ -100,7 +104,7 @@ struct LibraryScreen: View {
         } else {
             MediaGrid(
                 sections: model.sections,
-                columns: Int(columns),
+                size: model.thumbnailSize,
                 isSelected: model.selection.contains,
                 allSelected: { model.selection.containsAll(of: $0.items) },
                 onToggle: { model.selection.toggle($0.id) },

@@ -63,10 +63,10 @@ public final class ImageCaptureDeviceSession: NSObject, DeviceSession {
         String(UInt(bitPattern: ObjectIdentifier(item).hashValue), radix: 16)
     }
 
-    public func thumbnail(for item: MediaItem) async -> Data? {
+    public func thumbnail(for item: MediaItem, maxPixelSize: Int) async -> Data? {
         guard let file = files[item.id] else { return nil }
         return await withCheckedContinuation { continuation in
-            file.requestThumbnailData(options: [.imageSourceThumbnailMaxPixelSize: 360]) { @Sendable data, _ in
+            file.requestThumbnailData(options: [.imageSourceThumbnailMaxPixelSize: maxPixelSize]) { @Sendable data, _ in
                 continuation.resume(returning: data)
             }
         }

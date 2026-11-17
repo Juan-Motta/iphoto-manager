@@ -44,8 +44,8 @@ public protocol DeviceSession: MediaTransferring {
     var info: DeviceInfo { get async }
     /// Every photo and video on the device, newest first.
     func loadLibrary() async throws -> [MediaItem]
-    /// Small preview image data (JPEG/HEIC) for the grid.
-    func thumbnail(for item: MediaItem) async -> Data?
+    /// Preview image data (JPEG/HEIC) for the grid, at most `maxPixelSize` on its longest side.
+    func thumbnail(for item: MediaItem, maxPixelSize: Int) async -> Data?
     func eject() async
 }
 
