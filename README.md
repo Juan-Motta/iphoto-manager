@@ -10,7 +10,7 @@ Hexagonal, one Swift package:
 |---|---|
 | `PhotoManagerCore` | Domain: `MediaItem`, `Selection`, `DeviceInfo`, `TransferService` and the ports `DeviceMonitor`, `DeviceSession`, `MediaTransferring`, `MediaStore`. No Apple device frameworks. |
 | `PhotoManagerAdapters` | `ImageCaptureDeviceMonitor` / `ImageCaptureDeviceSession` (ImageCaptureCore) and `FileSystemMediaStore` (disk). |
-| `PhotoManagerApp` | SwiftUI app. `AppModel` is the only type that talks to the domain; views are presentational. |
+| `App/` → `PhotoManagerApp` | Separate package with the SwiftUI app. `AppModel` is the only type that talks to the domain; views are presentational. |
 
 Safety rule: **Save & Delete removes an item from the iPhone only after its copy on the Mac is verified** (same file size). Failed copies stay on the iPhone.
 
@@ -25,5 +25,5 @@ Device data is limited to what ImageCaptureCore exposes: name, model, connection
 
 ```bash
 ./scripts/test.sh   # run the test suite (works with Command Line Tools only)
-swift run PhotoManager   # build and launch the app (needs Xcode selected)
+swift run --package-path App PhotoManager   # build and launch the app (needs Xcode)
 ```
